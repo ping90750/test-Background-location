@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import { ScrollView, StyleSheet, Platform, AsyncStorage } from "react-native";
 import * as Location from "expo-location";
 import * as TaskManager from "expo-task-manager";
+import axios from "react-native-axios";
 import { ExpoLinksView } from "@expo/samples";
 
 export default class LinksScreen extends Component<Props> {
@@ -99,7 +100,17 @@ TaskManager.defineTask("task1", async ({ data, error }) => {
   }
   if (data) {
     console.log("You've entered region:", data);
+    await AsyncStorage.setItem("location", data);
     const { location } = data;
+    axios
+      .get(this.state.location)
+      .then(function(response) {
+        console.warn("response", response);
+      })
+      .catch(function(error) {
+        // handle error
+        console.log("error", error);
+      });
     const currentUser = await LinksScreen.getCurrentUser();
     console.log("currentUser", currentUser);
   }
