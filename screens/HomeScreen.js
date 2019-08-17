@@ -1,5 +1,5 @@
-import * as WebBrowser from 'expo-web-browser';
-import React from 'react';
+import * as WebBrowser from "expo-web-browser";
+import React, { Component } from "react";
 import {
   Image,
   Platform,
@@ -7,71 +7,141 @@ import {
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
-} from 'react-native';
+  View
+} from "react-native";
+import * as TaskManager from "expo-task-manager";
+import * as BackgroundFetch from "expo-background-fetch";
+import { MonoText } from "../components/StyledText";
+const Dimensions = require("Dimensions");
+const width = Dimensions.get("window").width;
+const height = Dimensions.get("window").height;
 
-import { MonoText } from '../components/StyledText';
+BackgroundFetch.setMinimumIntervalAsync(60);
 
-export default function HomeScreen() {
-  return (
-    <View style={styles.container}>
-      <ScrollView
-        style={styles.container}
-        contentContainerStyle={styles.contentContainer}>
-        <View style={styles.welcomeContainer}>
-          <Image
-            source={
-              __DEV__
-                ? require('../assets/images/robot-dev.png')
-                : require('../assets/images/robot-prod.png')
-            }
-            style={styles.welcomeImage}
-          />
-        </View>
+export default class HomeScreen extends Component<Props> {
+  static navigationOptions = ({ navigation }) => {
+    const params = navigation.state.params || {};
+    return {
+      headerStyle: { backgroundColor: "#F9F9F9" },
+      headerTitle: (
+        <Text
+          style={{
+            flex: 1,
+            fontSize: width * 0.05,
+            fontWeight: "bold",
+            textAlign: "center",
+            color: "#707070"
+          }}
+        >
+          HomeScreen
+        </Text>
+      ),
+      headerLeft: <View style={{ flex: 1 }} />,
+      headerRight: (
+        <TouchableOpacity
+          hitSlop={{
+            top: width * 0.04,
+            bottom: width * 0.04,
+            left: width * 0.1,
+            right: width * 0.1
+          }}
+        >
+          <Text
+            style={{ marginRight: 20, color: "#FA7268", fontWeight: "600" }}
+          >
+            Done
+          </Text>
+        </TouchableOpacity>
+      )
+    };
+  };
 
-        <View style={styles.getStartedContainer}>
-          <DevelopmentModeNotice />
-
-          <Text style={styles.getStartedText}>Get started by opening</Text>
-
-          <View
-            style={[styles.codeHighlightContainer, styles.homeScreenFilename]}>
-            <MonoText>screens/HomeScreen.js</MonoText>
+  constructor(props) {
+    super(props);
+    const { params } = this.props.navigation.state;
+    this.state = {
+      location: null,
+      errorMessage: null
+    };
+  }
+  async componentWillMount() {
+    this.registerTaskAsync();
+  }
+  registerTaskAsync = async () => {
+    await BackgroundFetch.registerTaskAsync("task2");
+    alert("task registered");
+  };
+  render() {
+    return (
+      <View style={styles.container}>
+        <ScrollView
+          style={styles.container}
+          contentContainerStyle={styles.contentContainer}
+        >
+          <View style={styles.welcomeContainer}>
+            <Image
+              source={
+                __DEV__
+                  ? require("../assets/images/robot-dev.png")
+                  : require("../assets/images/robot-prod.png")
+              }
+              style={styles.welcomeImage}
+            />
           </View>
 
-          <Text style={styles.getStartedText}>
-            Change this text and your app will automatically reload.
-          </Text>
-        </View>
+          <View style={styles.getStartedContainer}>
+            <DevelopmentModeNotice />
 
-        <View style={styles.helpContainer}>
-          <TouchableOpacity onPress={handleHelpPress} style={styles.helpLink}>
-            <Text style={styles.helpLinkText}>
-              Help, it didn’t automatically reload!
+            <Text style={styles.getStartedText}>Get started by opening</Text>
+
+            <View
+              style={[styles.codeHighlightContainer, styles.homeScreenFilename]}
+            >
+              <MonoText>screens/HomeScreen.js</MonoText>
+            </View>
+
+            <Text style={styles.getStartedText}>
+              Change this text and your app will automatically reload.
             </Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
+          </View>
 
-      <View style={styles.tabBarInfoContainer}>
-        <Text style={styles.tabBarInfoText}>
-          This is a tab bar. You can edit it in:
-        </Text>
+          <View style={styles.helpContainer}>
+            <TouchableOpacity onPress={handleHelpPress} style={styles.helpLink}>
+              <Text style={styles.helpLinkText}>
+                Help, it didn’t automatically reload!
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </ScrollView>
 
-        <View
-          style={[styles.codeHighlightContainer, styles.navigationFilename]}>
-          <MonoText style={styles.codeHighlightText}>
-            navigation/MainTabNavigator.js
-          </MonoText>
+        <View style={styles.tabBarInfoContainer}>
+          <Text style={styles.tabBarInfoText}>
+            This is a tab bar. You can edit it in:
+          </Text>
+
+          <View
+            style={[styles.codeHighlightContainer, styles.navigationFilename]}
+          >
+            <MonoText style={styles.codeHighlightText}>
+              navigation/MainTabNavigator.js
+            </MonoText>
+          </View>
         </View>
       </View>
-    </View>
-  );
+    );
+  }
 }
-
-HomeScreen.navigationOptions = {
-  header: null,
-};
+TaskManager.defineTask("task2", () => {
+  try {
+    const receivedNewData = []; // do your background fetch here
+    console.log("receivedNewData", receivedNewData);
+    return receivedNewData
+      ? console.log("Newdata", BackgroundFetch.Result.NewData)
+      : console.log("NOdata", BackgroundFetch.Result.NoData);
+  } catch (error) {
+    return console.log("Failed", BackgroundFetch.Result.Failed);
+  }
+});
 
 function DevelopmentModeNotice() {
   if (__DEV__) {
@@ -98,101 +168,101 @@ function DevelopmentModeNotice() {
 
 function handleLearnMorePress() {
   WebBrowser.openBrowserAsync(
-    'https://docs.expo.io/versions/latest/workflow/development-mode/'
+    "https://docs.expo.io/versions/latest/workflow/development-mode/"
   );
 }
 
 function handleHelpPress() {
   WebBrowser.openBrowserAsync(
-    'https://docs.expo.io/versions/latest/workflow/up-and-running/#cant-see-your-changes'
+    "https://docs.expo.io/versions/latest/workflow/up-and-running/#cant-see-your-changes"
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff"
   },
   developmentModeText: {
     marginBottom: 20,
-    color: 'rgba(0,0,0,0.4)',
+    color: "rgba(0,0,0,0.4)",
     fontSize: 14,
     lineHeight: 19,
-    textAlign: 'center',
+    textAlign: "center"
   },
   contentContainer: {
-    paddingTop: 30,
+    paddingTop: 30
   },
   welcomeContainer: {
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 10,
-    marginBottom: 20,
+    marginBottom: 20
   },
   welcomeImage: {
     width: 100,
     height: 80,
-    resizeMode: 'contain',
+    resizeMode: "contain",
     marginTop: 3,
-    marginLeft: -10,
+    marginLeft: -10
   },
   getStartedContainer: {
-    alignItems: 'center',
-    marginHorizontal: 50,
+    alignItems: "center",
+    marginHorizontal: 50
   },
   homeScreenFilename: {
-    marginVertical: 7,
+    marginVertical: 7
   },
   codeHighlightText: {
-    color: 'rgba(96,100,109, 0.8)',
+    color: "rgba(96,100,109, 0.8)"
   },
   codeHighlightContainer: {
-    backgroundColor: 'rgba(0,0,0,0.05)',
+    backgroundColor: "rgba(0,0,0,0.05)",
     borderRadius: 3,
-    paddingHorizontal: 4,
+    paddingHorizontal: 4
   },
   getStartedText: {
     fontSize: 17,
-    color: 'rgba(96,100,109, 1)',
+    color: "rgba(96,100,109, 1)",
     lineHeight: 24,
-    textAlign: 'center',
+    textAlign: "center"
   },
   tabBarInfoContainer: {
-    position: 'absolute',
+    position: "absolute",
     bottom: 0,
     left: 0,
     right: 0,
     ...Platform.select({
       ios: {
-        shadowColor: 'black',
+        shadowColor: "black",
         shadowOffset: { width: 0, height: -3 },
         shadowOpacity: 0.1,
-        shadowRadius: 3,
+        shadowRadius: 3
       },
       android: {
-        elevation: 20,
-      },
+        elevation: 20
+      }
     }),
-    alignItems: 'center',
-    backgroundColor: '#fbfbfb',
-    paddingVertical: 20,
+    alignItems: "center",
+    backgroundColor: "#fbfbfb",
+    paddingVertical: 20
   },
   tabBarInfoText: {
     fontSize: 17,
-    color: 'rgba(96,100,109, 1)',
-    textAlign: 'center',
+    color: "rgba(96,100,109, 1)",
+    textAlign: "center"
   },
   navigationFilename: {
-    marginTop: 5,
+    marginTop: 5
   },
   helpContainer: {
     marginTop: 15,
-    alignItems: 'center',
+    alignItems: "center"
   },
   helpLink: {
-    paddingVertical: 15,
+    paddingVertical: 15
   },
   helpLinkText: {
     fontSize: 14,
-    color: '#2e78b7',
-  },
+    color: "#2e78b7"
+  }
 });
